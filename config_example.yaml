@@ -1,0 +1,3 @@
+data_dir: "/path/to/data"
+output_dir: "/path/to/output"
+log_dir: "/path/to/logs"
