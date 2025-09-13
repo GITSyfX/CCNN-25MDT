@@ -428,15 +428,13 @@ class MDT:
         self.ind_active_model = 1
         self.time_step = 1
 
-        self.MB_wgt = np.array([0,1.0,0])
-        self.MF_wgt = self.MB_wgt
         self.B_B2F = .2e1
         self.B_F2B  = 1.0e1
 
         if self.ind_active_model == 1:
-            self.MB_prob_prev=0.7
+            self.MB_prob_prev=0.5   
         else:
-            self.MB_prob_prev=0.3
+            self.MB_prob_prev=0.5
 
         self.MF_prob_prev = 1-self.MB_prob_prev
         self.MB_prob = self.MB_prob_prev
@@ -491,12 +489,12 @@ class MDT:
         
         # (1) find the corresponding row
         PE_level = np.where((self.MB_thr_PE-self.agent_MB.SPE)<0); # [!!] must be fwd because it looks into SPE.    
-        PE_theta = len(PE_level)+1; # 1:neg, 2:zero, 3:posPE
+        PE_theta = len(PE_level); # 0:neg, 1:zero, 2:posPE
         
         # (2) update the current column(=1) in PE_history
         self.MB_PE_history[:,1:] = self.MB_PE_history[:,0:-1] # shift 1 column (toward past)
         self.MB_PE_history[:,0] = np.zeros((self.M,1)) # empty the first column
-        self.MB_PE_history[PE_theta,1] = 1 # add the count 1 in the first column
+        self.MB_PE_history[PE_theta,0] = 1 # add the count 1 in the first column
         self.MB_PE_num = np.sum(self.MB_PE_history == 1, axis=1)  # compute discounted accumulated PE
         
         # (3) posterior mean & var
@@ -506,8 +504,9 @@ class MDT:
         self.MB_var = ((1+self.MB_PE_num)*(2+sumEvents_excl))/((3+sumEvents)**2*(4+sumEvents)) 
 
         # (4) caculate reliability
-        self.MB_inv_Fano = self.MB_mean/self.MB_var
-        
+        self.MB_triinv_Fano = self.MB_mean/self.MB_var
+        self.MB_inv_Fano = self.MB_triinv_Fano[1]/sum(self.MB_triinv_Fano) 
+
         ''' MF model reliability estitation''' 
         # (0) backup old values
         self.MF_inv_Fano_old = self.MF_inv_Fano
@@ -516,11 +515,11 @@ class MDT:
         self.MF_absPEestimate = self.MF_absPEestimate+self.eta*(abs(self.agent_MF.RPE)-self.MF_absPEestimate)
 
         # (2) caculate reliability
-        self.MF_inv_Fano = np.array([0, (40-self.MF_absPEestimate)/40, 0]) # [0,1]
+        self.MF_inv_Fano = (40-self.MF_absPEestimate)/40 # [0,1]
 
     def Dynamic_Arbit(self): 
-        input1 = self.MB_wgt*self.MB_inv_Fano
-        input2 = self.MF_wgt*self.MF_inv_Fano
+        input1 = self.MB_inv_Fano
+        input2 = self.MF_inv_Fano
         
         self.transition_rateF2B = self.A_F2B/(1+np.exp(self.B_F2B*input2))
         self.transition_rateB2F = self.A_B2F/(1+np.exp(self.B_B2F*input1))
@@ -558,7 +557,4 @@ class MDT:
     def bw_update(self,g): 
         self.agent_MF.bw_update(g)
         self.agent_MB.bw_update(g)
-
-
-
 
