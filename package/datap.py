@@ -250,7 +250,7 @@ def block(agent,env,init,seed):
     pred_data = pd.DataFrame(init_mat, columns=col)  
 
     ## loop to simulate the responses in the block
-    last_g = -1 
+    last_g = 6     
     for t, row in block_data.iterrows():
         if row['g'] != last_g:
             flag = 1
@@ -319,103 +319,80 @@ def hr(data):
     return hr,H_uncer_spe_hr,H_uncer_flex_hr,L_uncer_spe_hr,L_uncer_flex_hr 
 
 def poc(data):
-    poc_rate = []
-    poc = []
-    t = 0
-    for i in range(0,len(data)):
-        if data.loc[i,'p'] == 0.9:
-            if data.loc[i,'g'] == -1:
-                if data.loc[i,'a1'] == 1:
-                    t +=1
-                if data.loc[i,'s1'] == 1:
-                    if data.loc[i,'a2'] == 0:
-                        t +=1
-                if data.loc[i,'s1'] == 2:
-                    if data.loc[i,'a2'] == 1:
-                        t +=1
-                if data.loc[i,'s1'] == 3:
-                    if data.loc[i,'a2'] == 1:
-                        t +=1
-                if data.loc[i,'s1'] == 4:
-                    if data.loc[i,'a2'] == 0:
-                        t +=1
-            if data.loc[i,'g'] == 7:
-                if data.loc[i,'a1'] == 0:
-                    t +=1
-                if data.loc[i,'s1'] == 1:
-                    if data.loc[i,'a2'] == 1:
-                        t +=1
-                if data.loc[i,'s1'] == 2:
-                    if data.loc[i,'a2'] == 0:
-                        t +=1
-            if data.loc[i,'g'] == 6:
-                t += 1
-                if data.loc[i,'s1'] == 1:
-                    if data.loc[i,'a2'] == 0:
-                        t +=1
-                if data.loc[i,'s1'] == 2:
-                    if data.loc[i,'a2'] == 1:
-                        t +=1
-                if data.loc[i,'s1'] == 3:
-                    if data.loc[i,'a2'] == 0:
-                        t +=1
-                if data.loc[i,'s1'] == 4:
-                    if data.loc[i,'a2'] == 0:
-                        t +=1
+    """
+    返回总平均最优选择率和四个block的平均最优选择率
+    """
+    # 设置奖励和转移概率
+    nA = 2
+    nS = 9
+    R = np.zeros(nS)
+    R_save = np.array([0,0,0,0,0,40,20,10,0])
+    A_prob = {
+        0:np.zeros((nS,nS),dtype=float),
+        1:np.zeros((nS,nS),dtype=float)
+        } 
+    T = {0:[[1,2], [6,7], [7,8], [6,5], [6,8]],
+        1:[[3,4], [7,8], [6,8], [5,8], [8,5]]}
 
-        if data.loc[i,'p'] == 0.5:
-            if data.loc[i,'g'] == -1:
-                if data.loc[i,'a1'] == 1:
-                    t +=1
-                if data.loc[i,'s1'] == 1:
-                    if data.loc[i,'a2'] == 0:
-                        t +=1
-                if data.loc[i,'s1'] == 2:
-                    if data.loc[i,'a2'] == 1:
-                        t +=1
-                if data.loc[i,'s1'] == 3:
-                    if data.loc[i,'a2'] == 0:
-                        t +=1
-                if data.loc[i,'s1'] == 4:
-                    if data.loc[i,'a2'] == 1:
-                        t +=1
-            if data.loc[i,'g'] == 7:
-                if data.loc[i,'a1'] == 0:
-                    t +=1
-                if data.loc[i,'s1'] == 1:
-                    t +=1
-                if data.loc[i,'s1'] == 2:
-                    if data.loc[i,'a2'] == 0:
-                        t +=1
-            if data.loc[i,'g'] == 6:
-                t += 1
-                if data.loc[i,'s1'] == 1:
-                    if data.loc[i,'a2'] == 0:
-                        t +=1
-                if data.loc[i,'s1'] == 2:
-                    if data.loc[i,'a2'] == 1:
-                        t +=1
-                if data.loc[i,'s1'] == 3:
-                    if data.loc[i,'a2'] == 0:
-                        t +=1
-                if data.loc[i,'s1'] == 4:
-                    if data.loc[i,'a2'] == 0:
-                        t +=1 
+
+    # 判断每个选择是否最优
+    t = 0
+    last_g = 6
+    for i in range(0,len(data)):
+        g = data.loc[i,'g']
+        p = data.loc[i,'p']
+        # 计算V值（两阶段结构）
+        if i == 0 or last_g != g:
+            R.fill(0)
+            if g == -1:
+                R[5:nS] = np.array([40, 20, 10, 0])
+            else:
+                R[g] = R_save[g]
+            last_g = g
+
+            for mm in range(nA):
+                for nn in range(len(T[mm])):
+                    A_prob[mm][nn, T[mm][nn]] = [p, 1-p]
+
+            V = np.zeros((nS, nA))
+                        
+            for s in range(5, 9):
+                V[s, :] = R[s]
+
+            for s in range(1, 5):
+                for a in range(nA):
+                    probs = A_prob[a][s]
+                    V[s, a] = np.sum([p_s * np.max(V[s_next]) for s_next, p_s in enumerate(probs) if p_s>0])
+
+            for a in range(nA):
+                probs = A_prob[a][0]
+                V[0, a] = np.sum([p_s * np.max(V[s_next]) for s_next, p_s in enumerate(probs) if p_s>0])
+
+            
+
+
+
+        a1 = data.loc[i,'a1']
+        a2 = data.loc[i,'a2'] 
+        s1 = data.loc[i,'s1']
+        s2 = data.loc[i,'s2']
+
+        if np.array_equal(V[s1]) or a1 == np.argmax(V[s1]):
+            t += 1
+        if np.array_equal(V[s2]) or a2 == np.argmax(V[s2]):
+            t += 1
+
         poc_rate.append(t/(2*(i+1)))
         poc.append(t)
 
     poc_rate = np.array(poc_rate)
     poc = np.array(poc)
 
-    # L_uncer_spe_poc = (poc[112]-poc[0])/(2*len(poc[0:112]))
-    # L_uncer_flex_poc = (poc[225]-poc[113])/(2*len(poc[113:225]))
-    # H_uncer_spe_poc = (poc[338]-poc[226])/(2*len(poc[226:338]))
-    # H_uncer_flex_poc = (poc[451]-poc[339])/(2*len(poc[339:451]))
-    L_uncer_spe_poc = (poc[36]-poc[0])/(2*len(poc[0:36]))
-    L_uncer_flex_poc = (poc[74]-poc[37])/(2*len(poc[37:74]))
-    H_uncer_spe_poc = (poc[111]-poc[75])/(2*len(poc[75:111]))
-    H_uncer_flex_poc = (poc[149]-poc[112])/(2*len(poc[112:149]))
-    
+    L_uncer_spe_poc = (poc[36]-poc[0])/len(poc[0:36])
+    L_uncer_flex_poc  = (poc[74]-poc[37])/len(poc[37:74])
+    H_uncer_spe_poc = (poc[111]-poc[75])/len(poc[75:111])
+    H_uncer_flex_poc = (poc[149]-poc[112])/len(poc[112:149])
+
     return poc_rate,H_uncer_spe_poc,H_uncer_flex_poc,L_uncer_spe_poc,L_uncer_flex_poc 
 
 
