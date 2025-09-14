@@ -323,6 +323,8 @@ def poc(data):
     返回总平均最优选择率和四个block的平均最优选择率
     """
     # 设置奖励和转移概率
+    oc = []
+    poc = []
     nA = 2
     nS = 9
     R = np.zeros(nS)
@@ -374,25 +376,25 @@ def poc(data):
 
         a1 = data.loc[i,'a1']
         a2 = data.loc[i,'a2'] 
+        s0 = 0
         s1 = data.loc[i,'s1']
-        s2 = data.loc[i,'s2']
 
-        if np.array_equal(V[s1]) or a1 == np.argmax(V[s1]):
+        if V[s0][0] == V[s0][1] or a1 == np.argmax(V[s0]):
             t += 1
-        if np.array_equal(V[s2]) or a2 == np.argmax(V[s2]):
+        if V[s1][0] == V[s1][1] or a2 == np.argmax(V[s1]):
             t += 1
 
-        poc_rate.append(t/(2*(i+1)))
-        poc.append(t)
-
-    poc_rate = np.array(poc_rate)
+        oc.append(t)
+        poc.append(t/(2*(i+1)))
+    oc = np.array(oc)
     poc = np.array(poc)
 
-    L_uncer_spe_poc = (poc[36]-poc[0])/len(poc[0:36])
-    L_uncer_flex_poc  = (poc[74]-poc[37])/len(poc[37:74])
-    H_uncer_spe_poc = (poc[111]-poc[75])/len(poc[75:111])
-    H_uncer_flex_poc = (poc[149]-poc[112])/len(poc[112:149])
 
-    return poc_rate,H_uncer_spe_poc,H_uncer_flex_poc,L_uncer_spe_poc,L_uncer_flex_poc 
+    L_uncer_spe_poc = (oc[36]-oc[0])/(2*len(oc[0:36]))
+    L_uncer_flex_poc  = (oc[74]-oc[37])/(2*len(oc[37:74]))
+    H_uncer_spe_poc = (oc[111]-oc[75])/(2*len(oc[75:111]))
+    H_uncer_flex_poc = (oc[149]-oc[112])/(2*len(oc[112:149]))
+
+    return poc,H_uncer_spe_poc,H_uncer_flex_poc,L_uncer_spe_poc,L_uncer_flex_poc 
 
 

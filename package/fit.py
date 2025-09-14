@@ -118,7 +118,7 @@ def nll(params, agent, env, data):
         s_termination = env.s_termination
         nLL = 0
         ## loop to simulate the responses in the block 
-        last_g = -1 
+        last_g = 6 
         for _, row in data.iterrows():
             # ---------- Stage 1 ----------- #
             # see state 
