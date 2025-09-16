@@ -339,7 +339,7 @@ class MB():
         return self.Q
     
 class MDT:
-    name = 'MDT'
+    name = 'MixedArb-Dynamic'
     bnds = [(1e-3, 1), (0.1, 1), (0.2, 10), (0.02, 10), (0, 1), (0, 2)]
     pbnds = [(0.3,0.7), (0.1,0.35), (0.2, 5), (0.02, 5), (0.05, 0.3), (0.1,0.5)]
     p_name = ['w','eta','A_F2B','A_B2F','alpha','beta'] #参数名
