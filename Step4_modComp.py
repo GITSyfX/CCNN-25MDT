@@ -9,18 +9,21 @@ from collections import defaultdict
 def process_IC(agent_name, all_fitdata):
     AIC = defaultdict(list)
     BIC = defaultdict(list)
-    fit_info = {}
     all_sub_info = []
     rows = [] 
 
     for agent_fitdata in all_fitdata.values(): 
-        fit_info['bic'] = [fitdata['bic'] for fitdata in agent_fitdata]
+        fit_info = {}
+        fit_info['bic'] = [fitdata['bic'] for fitdata in agent_fitdata.values()]
         all_sub_info.append(fit_info) # get fit information (BIC) for calculating PXP
         for subj_id, fitdata in agent_fitdata.items():
             AIC[subj_id].append(fitdata['aic']) # get AIC
             BIC[subj_id].append(fitdata['bic']) # get BIC
-    BMS_result = fit.fit.bms(all_sub_info,use_bic=True) # calculate PXP
-    crs_PXP = BMS_result['pxp'] # the sort of agent name is the same as all_fitdata.keys()
+    BMS_result = fit.bms(all_sub_info,use_bic=True) # calculate PXP
+    crs_PXP = pd.DataFrame({
+            'agent': agent_name,
+            'PXP': BMS_result['pxp']})
+     # the sort of agent name is the same as all_fitdata.keys()
 
     for subj_id in BIC.keys():            
         AIC_diff = [x - AIC[subj_id][0] for x in AIC[subj_id]] # mode index 0: MixedArb-Dynamic model 
@@ -31,33 +34,32 @@ def process_IC(agent_name, all_fitdata):
             'subj_id': subj_id,
             'AIC': AIC_diff[i],
             'BIC': BIC_diff[i],
-            'PXP': crs_PXP[i],
             }        
             rows.append(row)
 
     crs_table = pd.DataFrame(rows)
-    return crs_table
+    return crs_table, crs_PXP
 
 def violin(ax, data, x, y, order = None, palette = None, orient='v',
-        hue=None, hue_order=None, 
+        hue=None, hue_order=None, color = None,
         mean_marker_size=6, err_capsize=.11, scatter_size=7):
 
         g_var = y if orient=='h' else x
         v_var = x if orient=='h' else y
         v=sns.violinplot(data=data, 
                             x=x, y=y, order=order, 
-                            hue=g_var if hue is None else hue, 
-                            hue_order=order if hue is None else hue_order, 
-                            orient=orient, palette=palette, 
+                            hue=hue, 
+                            hue_order=hue_order if hue is None else hue_order, 
+                            orient=orient, palette=palette, color=color,
                             legend=False, alpha=.1, inner=None, density_norm='width',
                             ax=ax)
         plt.setp(v.collections, alpha=.35, edgecolor='none')
         sns.stripplot(data=data, 
                             x=x, y=y, order=order, 
-                            hue=g_var if hue is None else hue, 
-                            hue_order=order if hue is None else hue_order, 
+                            hue=hue, 
+                            hue_order=hue_order if hue is None else hue_order, 
                             orient=orient, palette=palette, 
-                            size=scatter_size,
+                            size=scatter_size,color = color,
                             edgecolor=None, jitter=True, alpha=.7,
                             dodge=False if hue is None else True,
                             legend=False, zorder=2,
@@ -82,36 +84,36 @@ def violin(ax, data, x, y, order = None, palette = None, orient='v',
 
 # model comparison
 def viz_sortviolin(agent_name,all_fitdata):
-    fig, ax = plt.subplots(1, 3, figsize=(4, 12))
+    fig, ax = plt.subplots(1, 3, figsize=(12, 4))
     ax = ax.flatten()
 
     crs_table,crs_PXP = process_IC(agent_name,all_fitdata)
 
-    for i, critics in enumerate(['AIC','BIC','PXP']):
-        critics_means = crs_table.groupby('agent')[critics].mean()
-        sorted_models = critics_means.sort_values(ascending=True).index.tolist()
-        violin(data=crs_table, x=critics, y='agent', 
-            order=sorted_models, orient='h',color=(161/255,169/255,208/255),palette=None,
-            mean_marker_size=8, scatter_size=2,
-            err_capsize=.1,
-            ax=ax[i])
-        
+    for i, critics in enumerate(['AIC','BIC','PXP']):        
         if critics == 'PXP':
-            sorted_indices = np.argsort(-np.array(crs_table['PXP']))
-            sorted_models = [crs_table['agent'][i] for i in sorted_indices]
+            sorted_indices = np.argsort(-np.array(crs_PXP['PXP']))
+            sorted_models = [crs_PXP['agent'][i] for i in sorted_indices]
             
-            sns.barplot(data=crs_table, x=critics, y='agent', 
+            sns.barplot(data=crs_PXP, x=critics, y='agent', 
                         order=sorted_models, color = (161/255,169/255,208/255),
                         orient='h', ax=ax[i])
+        else:    
+            critics_means = crs_table.groupby('agent')[critics].mean()
+            sorted_models = critics_means.sort_values(ascending=True).index.tolist()
+            violin(data=crs_table, x=critics, y='agent', 
+                order=sorted_models, orient='h',color=(161/255,169/255,208/255),palette=None,
+                mean_marker_size=8, scatter_size=2,
+                err_capsize=.1,
+                ax=ax[i])
            
         indices = [agent_name.index(x)+1 for x in sorted_models]
+        pic.set_format(ax[i],None,None )
         ax[i].axvline(x=0, ymin=0, ymax=1, color='k', ls='--', lw=1.5)
         ax[i].set_yticks(list(range(len(sorted_models)))) 
         ax[i].set_yticklabels(indices)
         ax[i].spines['left'].set_position(('axes',-0.1))
         ax[i].set_box_aspect(1.5)
-        for pos in ['bottom','left']: ax[i].spines[pos].set_linewidth(2)
-        for pos in ['top','right']: ax[i].spines[pos].set_visible(False)
+    plt.show()
 
 def viz_sortcurve(agent_dict, agents, markers, crs='BIC'): 
     sel_table = pd.DataFrame.from_dict(agent_dict.copy())
@@ -135,6 +137,8 @@ def viz_sortcurve(agent_dict, agents, markers, crs='BIC'):
     ax.set_xlabel(f'Participant index\n(sorted by the minimum {crs} score over all models)')
     ax.set_ylabel(crs.upper())
     fig.tight_layout()
+
+
 
 
 if __name__ == '__main__':
