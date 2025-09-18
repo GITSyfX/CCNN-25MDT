@@ -6,7 +6,7 @@ import pickle
 from package import agent,datap,fit,pic
 from collections import defaultdict
 
-def process_IC(agent_name, all_fitdata):
+def process_IC(agent_name, all_fitdata, caldiff = None):
     AIC = defaultdict(list)
     BIC = defaultdict(list)
     all_sub_info = []
@@ -25,15 +25,21 @@ def process_IC(agent_name, all_fitdata):
             'PXP': BMS_result['pxp']})
      # the sort of agent name is the same as all_fitdata.keys()
 
-    for subj_id in BIC.keys():            
-        AIC_diff = [x - AIC[subj_id][0] for x in AIC[subj_id]] # mode index 0: MixedArb-Dynamic model 
-        BIC_diff = [x - BIC[subj_id][0] for x in BIC[subj_id]]
+    for subj_id in BIC.keys(): 
+        if caldiff == True:           
+            AIC_crs = [x - AIC[subj_id][0] for x in AIC[subj_id]] # mode index 0: MixedArb-Dynamic model 
+            BIC_crs = [x - BIC[subj_id][0] for x in BIC[subj_id]]
+
+        else:
+            AIC_crs = [x for x in AIC[subj_id]]
+            BIC_crs = [x for x in BIC[subj_id]]
+
         for i,name in enumerate(agent_name):
             row = {
-            'agent':name,
             'subj_id': subj_id,
-            'AIC': AIC_diff[i],
-            'BIC': BIC_diff[i],
+            'agent':name,
+            'AIC': AIC_crs[i],
+            'BIC': BIC_crs[i],
             }        
             rows.append(row)
 
@@ -87,7 +93,7 @@ def viz_sortviolin(agent_name,all_fitdata):
     fig, ax = plt.subplots(1, 3, figsize=(12, 4))
     ax = ax.flatten()
 
-    crs_table,crs_PXP = process_IC(agent_name,all_fitdata)
+    crs_table,crs_PXP = process_IC(agent_name,all_fitdata,caldiff=True)
 
     for i, critics in enumerate(['AIC','BIC','PXP']):        
         if critics == 'PXP':
@@ -113,31 +119,34 @@ def viz_sortviolin(agent_name,all_fitdata):
         ax[i].set_yticklabels(indices)
         ax[i].spines['left'].set_position(('axes',-0.1))
         ax[i].set_box_aspect(1.5)
+    fig.tight_layout()
     plt.show()
 
-def viz_sortcurve(agent_dict, agents, markers, crs='BIC'): 
-    sel_table = pd.DataFrame.from_dict(agent_dict.copy())
+def viz_sortcurve(agent_name, all_fitdata, markers, crs='BIC'): 
+    crs_table,_ = process_IC(agent_name,all_fitdata)
+    sel_table = crs_table.pivot(index='subj_id', columns='agent', values= crs)
     sel_table[f'min_{crs}'] = sel_table.apply(
-        lambda x: np.min([x[f'{crs}_{agent.name}'] for agent in agents]), 
+        lambda x: np.min([x[f'{name}'] for name in agent_name]), 
         axis=1)
     sort_table = sel_table.sort_values(by=f'min_{crs}').reset_index()
     sort_table['sub_seq'] = sort_table.index
     fig, ax = plt.subplots(1, 1, figsize=(11, 4.5))
 
-    for i, agent in enumerate(agents):
+    for i, name in enumerate(agent_name):
         marker = markers[i]
-        sns.scatterplot(x='sub_seq', y=f'{crs}_{agent.name}', 
-                        data=sort_table, label = agent.name,
+        task_agent = getattr(agent,name)
+        sns.scatterplot(x='sub_seq', y=f'{name}', 
+                        data=sort_table, label = task_agent.name,
                         marker= marker, 
                         s=20, alpha=.8,
                         edgecolor='none', ax=ax)
-    ax.set_xlim([-5, sort_table.shape[0]+15])
+    pic.set_format(ax,f'Participant index\n(sorted by the minimum {crs} score over all models)', 'BIS')
     ax.legend(loc='upper left')
     ax.spines['left'].set_position(('axes',-0.02))
-    ax.set_xlabel(f'Participant index\n(sorted by the minimum {crs} score over all models)')
+    ax.set_xlim([-5, sort_table.shape[0]+15])
     ax.set_ylabel(crs.upper())
     fig.tight_layout()
-
+    plt.show()
 
 
 
@@ -146,6 +155,7 @@ if __name__ == '__main__':
     cfg = datap.load_config()
     dir = cfg["data_dir"]
     agent_name = ['MDT','MB','MF'] #'MB'
+    agent_markers = ['o','^','v']
     
     Groups_all_fitdata = {}
     MUD_all_fitdata = {}
@@ -164,8 +174,9 @@ if __name__ == '__main__':
         MUD_all_fitdata[name] = MUD_fitdata
         HC_all_fitdata[name] = HC_fitdata
 
-    viz_sortviolin(agent_name,Groups_all_fitdata)
-    viz_sortviolin(agent_name,MUD_all_fitdata)
-    viz_sortviolin(agent_name,HC_all_fitdata)
-    #viz_sortcurve(task_agent,agent_fitdata)
-
+    #viz_sortviolin(agent_name,Groups_all_fitdata)
+    #viz_sortviolin(agent_name,MUD_all_fitdata)
+    #viz_sortviolin(agent_name,HC_all_fitdata)
+    viz_sortcurve(agent_name, Groups_all_fitdata, agent_markers, crs='BIC')
+    viz_sortcurve(agent_name, MUD_all_fitdata, agent_markers, crs='BIC')
+    viz_sortcurve(agent_name, HC_all_fitdata, agent_markers, crs='BIC')

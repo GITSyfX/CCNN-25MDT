@@ -152,13 +152,15 @@ if __name__ == '__main__':
     ## STEP 1: LOAD OR SAVE DATA    
     cfg = datap.load_config()
     dir = cfg["data_dir"]
-    agent_name = ['MDT','MB','MF','RA','HC','MUD']
-    agent_dict = {}
+    sim_mode = cfg["sim_mode"]
 
-    for name in agent_name:
-        dataname = f'{name}_alldata'
-        agent_data = datap.load_pkl(dir,dataname)
-        agent_dict[name] = agent_data
+    data_name = ['MDT_MUDfit','MB_MUDfit','MF_MUDfit','RA_MUDfit','MUD_true','HC_true']
+    data_dict = {}
+
+    for name in data_name:
+            dataname = f'{name}_alldata'
+            agent_data = datap.load_pkl(dir,dataname)
+            data_dict[name] = agent_data
 
     ## STEP 2: PLOT DATA BY BAR
     indic_viz_param = {}
@@ -170,7 +172,7 @@ if __name__ == '__main__':
         indic = indic_viz_param[indicname].indic
         y_lim = indic_viz_param[indicname].lim
         y_ticks = indic_viz_param[indicname].ticks
-        viz_bar(agent_dict,agent_name,indic,indicname,y_lim,y_ticks)
+        viz_bar(data_dict,data_name,indic,indicname,y_lim,y_ticks)
     
     ## STEP 3: PLOT DATA BY CURVE
     indic_viz_param['Mean reward']= viz_param("datap.rew",[0,3000],[0,1500,3000])
@@ -181,7 +183,7 @@ if __name__ == '__main__':
         indic = indic_viz_param[indicname].indic
         y_lim = indic_viz_param[indicname].lim
         y_ticks = indic_viz_param[indicname].ticks
-        viz_curve(agent_dict,agent_name,agent_color,indic,indicname,y_lim,y_ticks)
+        viz_curve(data_dict,data_name,agent_color,indic,indicname,y_lim,y_ticks)
 
 
 

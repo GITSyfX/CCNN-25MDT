@@ -156,7 +156,7 @@ def save(dir):
         data.to_excel(f'Pre-processed_{dataname}',index=False)
 
 ''' simulate data'''
-def datapush(env, subj,row, rng,flag,last_g):
+def datapush(subj,env,row,rng,flag,last_g):
     # ---------- Stage 1 ----------- #
     # see state 
     g = row['g']
@@ -165,11 +165,11 @@ def datapush(env, subj,row, rng,flag,last_g):
     
     if flag == 1:
         subj.bw_update(g)
-        if subj.name == 'MDT' and last_g == -1:
+        if subj.name == 'MixedArb-Dynamic' and last_g == -1:
             subj.ind_active_model = 2 # switching the mode
             subj.MB_prob_prev = 0.2 #changing the choice prob accordingly
             subj.MB_prob = subj.MB_prob_prev
-        elif subj.name == 'MDT' and last_g != -1:
+        elif subj.name == 'MixedArb-Dynamic' and last_g != -1:
             subj.ind_active_model = 1 
             subj.MB_prob_prev = 0.8 
             subj.MB_prob = subj.MB_prob_prev
@@ -213,11 +213,75 @@ def datapush(env, subj,row, rng,flag,last_g):
     subj.learn()
     return a1, s1, pi1, a2, s2, pi2, r2
 
-def block(agent,env,init,seed): 
+def MDTwalk(subj,env,row,flag,last_g):
+    s_termination = env.s_termination
+    # ---------- Stage 1 ----------- #
+    # see state 
+    g = row['g']
+    p = row['p']
+    s0  = row['s0'] #s0 = env.reset()
+
+    if flag == 1:
+        subj.bw_update(g)
+        if subj.name == 'MixedArb-Dynamic' and last_g == -1:
+            subj.ind_active_model = 2 # switching the mode
+            subj.MB_prob_prev = 0.2 #changing the choice prob accordingly
+            subj.MB_prob = subj.MB_prob_prev
+        elif subj.name == 'MixedArb-Dynamic' and last_g != -1:
+            subj.ind_active_model = 1 
+            subj.MB_prob_prev = 0.8 
+            subj.MB_prob = subj.MB_prob_prev
+    
+    # the next state, rew, and done 
+    pi1  = subj.policy(s0)
+    a1 = row['a1']
+    s1 = row['s1']
+    r1 = 0
+    done = s1 in s_termination
+
+    a2 = row['a2']
+    #save the info 
+    subj.mem.push({
+        'g': g, 
+        'p': p,
+        's': s0, 
+        's_next': s1,
+        'a': a1, 
+        'a_next': a2,     
+        'r': r1,
+        'done': done
+    })
+    subj.learn()
+    
+    # ---------- Stage 2 ----------- #
+    # see state 
+    pi2 = subj.policy(s1)
+    s2 = row['s2']
+
+    # the next rew, and done 
+    r2 = row['r2']
+    done = s2 in s_termination
+
+    #save the info 
+    subj.mem.push({
+        'g': g, 
+        'p': p,
+        's': s1, 
+        's_next': s2,
+        'a': a2, 
+        'a_next': 'nochoice',
+        'r': r2,
+        'done': done
+    })
+    subj.learn()
+    P_MB = subj.MB_prob
+    return a1, s1, pi1, a2, s2, pi2, r2, P_MB
+
+def block(agent,env,init,seed,truedata = None): 
     rng = np.random.RandomState(seed)
-    if init:
+    if init.any():
         # if there are assigned params
-        params = init   
+        params = init  
     else:
         # random init from the possible bounds 
         pbnds = [[fn(p) for p in pbnd] for fn, pbnd in 
@@ -245,9 +309,13 @@ def block(agent,env,init,seed):
     subj = agent(env,params)
 
     ## init a blank dataframe to store simulation
-    col = ['a1', 's1', 'pi1', 'a2', 's2', 'pi2','r2']
+    if truedata is None or truedata.empty:
+        col = ['a1', 's1', 'pi1', 'a2', 's2', 'pi2','r2'] 
+    else:
+        col = ['a1', 's1', 'pi1', 'a2', 's2', 'pi2','r2','P_MB'] 
+    
     init_mat = np.zeros([block_data.shape[0], len(col)]) 
-    pred_data = pd.DataFrame(init_mat, columns=col)  
+    pred_data = pd.DataFrame(init_mat, columns=col)
 
     ## loop to simulate the responses in the block
     last_g = 6     
@@ -258,13 +326,21 @@ def block(agent,env,init,seed):
         else:
             flag = 0
         # simulate the data 
+        
 
-        a1, s1, pi1, a2, s2, pi2, r2 = datapush(env,subj,row,rng,flag,last_g)
+        if truedata is None or truedata.empty:
+            a1, s1, pi1, a2, s2, pi2, r2 = datapush(subj,env,row,rng,flag,last_g)
+        else:
+            row = truedata.iloc[t] 
+            a1, s1, pi1, a2, s2, pi2, r2, P_MB = MDTwalk(subj,env,row,flag,last_g)
         
         # record the stimulated data 
         for c in col: 
             if c == 'pi1' or c == 'pi2':
                 pred_data[c] = pred_data[c].astype('object')
+                pred_data.at[t, c] = eval(c)
+            elif c == 'P_MB':
+                pred_data[c] = pred_data[c].astype('float')
                 pred_data.at[t, c] = eval(c)
             else:
                 pred_data.loc[t, c] = eval(c)

@@ -432,9 +432,9 @@ class MDT:
         self.B_F2B  = 1.0e1
 
         if self.ind_active_model == 1:
-            self.MB_prob_prev=0.5   
+            self.MB_prob_prev=0.7   
         else:
-            self.MB_prob_prev=0.5
+            self.MB_prob_prev=0.3
 
         self.MF_prob_prev = 1-self.MB_prob_prev
         self.MB_prob = self.MB_prob_prev
@@ -479,8 +479,8 @@ class MDT:
     def beyesion_relest(self):
         self.MB_thr_PE = self.w*np.array([-1, 1]) # length = self.K-1
 
-        ''' MB model reliability estitation''' 
-        self.M_current_MB = np.min(self.M_current_MB+1, self.M) # update # of accumulated events
+        ''' MB model reliability estitation'''  
+        self.M_current_MB = np.min([self.M_current_MB+1, self.M]) # update # of accumulated events
         
         # (0) backup old values
         self.MB_mean_old = self.MB_mean
@@ -493,7 +493,7 @@ class MDT:
         
         # (2) update the current column(=1) in PE_history
         self.MB_PE_history[:,1:] = self.MB_PE_history[:,0:-1] # shift 1 column (toward past)
-        self.MB_PE_history[:,0] = np.zeros((self.M,1)) # empty the first column
+        self.MB_PE_history[:,0] = np.zeros(self.K) # empty the first column
         self.MB_PE_history[PE_theta,0] = 1 # add the count 1 in the first column
         self.MB_PE_num = np.sum(self.MB_PE_history == 1, axis=1)  # compute discounted accumulated PE
         
@@ -550,7 +550,8 @@ class MDT:
         self.agent_MB.mem = self.mem
         _,_,self.Q_MF = self.agent_MF.learn() 
         _,_,self.Q_MB = self.agent_MB.learn() 
-
+        self.beyesion_relest()
+        self.Dynamic_Arbit()
 
         self.Q = ((self.MB_prob*self.agent_MB.Q)**self.p + (self.MF_prob*self.agent_MF.Q)**self.p)**(1/self.p)
     
