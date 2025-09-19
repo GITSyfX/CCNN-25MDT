@@ -340,12 +340,13 @@ class MB():
     
 class MDT:
     name = 'MixedArb-Dynamic'
-    bnds = [(1e-3, 1), (0.1, 1), (0.2, 10), (0.02, 10), (0, 1), (0, 2)]
+    bnds = [(1e-3, 1), (0.1, 1), (1, 10), (1, 10), (0, 1), (0, 2)]
     pbnds = [(0.3,0.7), (0.1,0.35), (0.2, 5), (0.02, 5), (0.05, 0.3), (0.1,0.5)]
     p_name = ['w','eta','A_F2B','A_B2F','alpha','beta'] #参数名
     n_params = len(bnds) 
 
     p_trans = [
+        
         lambda x: 1e-3 + (1 - 1e-3) * sigmoid(x),     # (1e-3, 1)
         lambda x: 0.1  + (1 - 0.1)  * sigmoid(x),     # (0.1, 1)
         lambda x: 0.2  + (10 - 0.2) * sigmoid(x),     # (0.2, 10)
@@ -396,7 +397,7 @@ class MDT:
 
         '''Beyesian Reliability estimation'''
         self.K=3; # trichonomy of PE
-        self.M=10; # memory size = 10
+        self.M=150; # memory size = 10
         self.M_half=6; # half-life
         self.M_current_MB=0; # MF accumulated events. cannot exceed T.
     
@@ -509,6 +510,7 @@ class MDT:
 
         ''' MF model reliability estitation''' 
         # (0) backup old values
+
         self.MF_inv_Fano_old = self.MF_inv_Fano
 
         # (1) update of the absolute RPE estimator

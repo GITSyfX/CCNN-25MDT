@@ -165,11 +165,11 @@ def datapush(subj,env,row,rng,flag,last_g):
     
     if flag == 1:
         subj.bw_update(g)
-        if subj.name == 'MixedArb-Dynamic' and g == -1:
-            subj.ind_active_model = 2 # switching the mode
-            subj.MB_prob_prev = 0.2 #changing the choice prob accordingly
-            subj.MB_prob = subj.MB_prob_prev
-        elif subj.name == 'MixedArb-Dynamic' and g != -1:
+        # if subj.name == 'MixedArb-Dynamic' and g == -1:
+        #     subj.ind_active_model = 2 # switching the mode
+        #     subj.MB_prob_prev = 0.2 #changing the choice prob accordingly
+        #     subj.MB_prob = subj.MB_prob_prev
+        if subj.name == 'MixedArb-Dynamic' and g != -1:
             subj.ind_active_model = 1 
             subj.MB_prob_prev = 0.8 
             subj.MB_prob = subj.MB_prob_prev
@@ -223,11 +223,11 @@ def MDTwalk(subj,env,row,flag,last_g):
 
     if flag == 1:
         subj.bw_update(g)
-        if subj.name == 'MixedArb-Dynamic' and g == -1:
-            subj.ind_active_model = 2 # switching the mode
-            subj.MB_prob_prev = 0.2 #changing the choice prob accordingly
-            subj.MB_prob = subj.MB_prob_prev
-        elif subj.name == 'MixedArb-Dynamic' and g != -1:
+        # if subj.name == 'MixedArb-Dynamic' and g == -1:
+        #     subj.ind_active_model = 2 # switching the mode
+        #     subj.MB_prob_prev = 0.2 #changing the choice prob accordingly
+        #     subj.MB_prob = subj.MB_prob_prev
+        if subj.name == 'MixedArb-Dynamic' and g != -1:
             subj.ind_active_model = 1 
             subj.MB_prob_prev = 0.8 
             subj.MB_prob = subj.MB_prob_prev
