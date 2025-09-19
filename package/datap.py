@@ -165,11 +165,11 @@ def datapush(subj,env,row,rng,flag,last_g):
     
     if flag == 1:
         subj.bw_update(g)
-        if subj.name == 'MixedArb-Dynamic' and last_g == -1:
+        if subj.name == 'MixedArb-Dynamic' and g == -1:
             subj.ind_active_model = 2 # switching the mode
             subj.MB_prob_prev = 0.2 #changing the choice prob accordingly
             subj.MB_prob = subj.MB_prob_prev
-        elif subj.name == 'MixedArb-Dynamic' and last_g != -1:
+        elif subj.name == 'MixedArb-Dynamic' and g != -1:
             subj.ind_active_model = 1 
             subj.MB_prob_prev = 0.8 
             subj.MB_prob = subj.MB_prob_prev
@@ -223,11 +223,11 @@ def MDTwalk(subj,env,row,flag,last_g):
 
     if flag == 1:
         subj.bw_update(g)
-        if subj.name == 'MixedArb-Dynamic' and last_g == -1:
+        if subj.name == 'MixedArb-Dynamic' and g == -1:
             subj.ind_active_model = 2 # switching the mode
             subj.MB_prob_prev = 0.2 #changing the choice prob accordingly
             subj.MB_prob = subj.MB_prob_prev
-        elif subj.name == 'MixedArb-Dynamic' and last_g != -1:
+        elif subj.name == 'MixedArb-Dynamic' and g != -1:
             subj.ind_active_model = 1 
             subj.MB_prob_prev = 0.8 
             subj.MB_prob = subj.MB_prob_prev
@@ -275,20 +275,23 @@ def MDTwalk(subj,env,row,flag,last_g):
     })
     subj.learn()
     P_MB = subj.MB_prob
-    return a1, s1, pi1, a2, s2, pi2, r2, P_MB
+    Rel_MB = subj.MB_inv_Fano
+    Rel_MF = subj.MF_inv_Fano
+    return a1, s1, pi1, a2, s2, pi2, r2, P_MB, Rel_MB, Rel_MF
 
-def block(agent,env,init,seed,truedata = None): 
+def block(agent,env,seed,init = None, truedata = None): 
     rng = np.random.RandomState(seed)
-    if init.any():
-        # if there are assigned params
-        params = init  
-    else:
+    if init is None:
         # random init from the possible bounds 
         pbnds = [[fn(p) for p in pbnd] for fn, pbnd in 
                 zip(agent.p_links, agent.pbnds)]
         
         params = [pbnd[0] + (pbnd[1] - pbnd[0]
                     ) * rng.rand() for pbnd in pbnds]
+    else:    
+        # if there are assigned params
+        params = init  
+
         
     n_rep1=37
     n_rep2=38
@@ -312,7 +315,7 @@ def block(agent,env,init,seed,truedata = None):
     if truedata is None or truedata.empty:
         col = ['a1', 's1', 'pi1', 'a2', 's2', 'pi2','r2'] 
     else:
-        col = ['a1', 's1', 'pi1', 'a2', 's2', 'pi2','r2','P_MB'] 
+        col = ['a1', 's1', 'pi1', 'a2', 's2', 'pi2','r2','P_MB','Rel_MB','Rel_MF'] 
     
     init_mat = np.zeros([block_data.shape[0], len(col)]) 
     pred_data = pd.DataFrame(init_mat, columns=col)
@@ -332,14 +335,14 @@ def block(agent,env,init,seed,truedata = None):
             a1, s1, pi1, a2, s2, pi2, r2 = datapush(subj,env,row,rng,flag,last_g)
         else:
             row = truedata.iloc[t] 
-            a1, s1, pi1, a2, s2, pi2, r2, P_MB = MDTwalk(subj,env,row,flag,last_g)
+            a1, s1, pi1, a2, s2, pi2, r2, P_MB, Rel_MB, Rel_MF = MDTwalk(subj,env,row,flag,last_g)
         
         # record the stimulated data 
         for c in col: 
             if c == 'pi1' or c == 'pi2':
                 pred_data[c] = pred_data[c].astype('object')
                 pred_data.at[t, c] = eval(c)
-            elif c == 'P_MB':
+            elif c == 'P_MB' or c == 'Rel_MB' or c == 'Rel_MF':
                 pred_data[c] = pred_data[c].astype('float')
                 pred_data.at[t, c] = eval(c)
             else:
@@ -464,7 +467,6 @@ def poc(data):
         poc.append(t/(2*(i+1)))
     oc = np.array(oc)
     poc = np.array(poc)
-
 
     L_uncer_spe_poc = (oc[36]-oc[0])/(2*len(oc[0:36]))
     L_uncer_flex_poc  = (oc[74]-oc[37])/(2*len(oc[37:74]))

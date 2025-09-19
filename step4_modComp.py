@@ -164,9 +164,9 @@ if __name__ == '__main__':
     # STEP 2: PARAMS COMPARITION
     for name in agent_name:
         task_agent = getattr(agent,name)
-        with open(f'{dir}/fitdata/fitresults_MUD_{name}.pkl', 'rb') as f: 
+        with open(f'{dir}/fitdata/fitresults_{name}_MUD.pkl', 'rb') as f: 
                 MUD_fitdata = pickle.load(f)
-        with open(f'{dir}/fitdata/fitresults_HC_{name}.pkl', 'rb') as f: 
+        with open(f'{dir}/fitdata/fitresults_{name}_HC.pkl', 'rb') as f: 
                 HC_fitdata = pickle.load(f)
         Groups_fitdata = HC_fitdata | MUD_fitdata
         

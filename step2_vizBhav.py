@@ -154,11 +154,11 @@ if __name__ == '__main__':
     dir = cfg["data_dir"]
     sim_mode = cfg["sim_mode"]
 
-    data_name = ['MDT_MUDfit','MB_MUDfit','MF_MUDfit','RA_MUDfit','MUD_true','HC_true']
+    data_name = ['MDT_sim','MB_sim','MF_sim','RA_sim','MUD_true','HC_true']
     data_dict = {}
 
     for name in data_name:
-            dataname = f'{name}_alldata'
+            dataname = f'behavdata_{name}'
             agent_data = datap.load_pkl(dir,dataname)
             data_dict[name] = agent_data
 

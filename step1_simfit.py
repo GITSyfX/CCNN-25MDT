@@ -33,10 +33,10 @@ if __name__ == '__main__':
     ## STEP 3: FIT
     for name in agent_name:
         task_agent = getattr(agent,name)
-        dataname = f'{name}_alldata'
+        dataname = f'behavdata_{name}_sim'
         agent_data = datap.load_pkl(dir,dataname)
         results = fit.fl(pool,task_agent,agent_data,task_env,n_fits)
-        with open(f'{dir}/fitdata/fitresults_sim_{name}.pkl', 'xb') as f:    
+        with open(f'{dir}/fitdata/fitresults_{name}_sim.pkl', 'xb') as f:    
             pickle.dump(results, f)
 
     # summary the mean and std for parameters 

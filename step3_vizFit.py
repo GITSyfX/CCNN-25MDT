@@ -169,24 +169,24 @@ if __name__ == '__main__':
     agent_name = ['MDT','MB','MF'] #'MB'
     agent_dict = {}
 
-    # STEP 2: PARAMS COMPARITION
-    # for name in agent_name:
-    #     task_agent = getattr(agent,name)
-    #     with open(f'{dir}/fitdata/fitresults_MUD_{name}.pkl', 'rb') as f: 
-    #             MUD_fitdata = pickle.load(f)
-
-    #     with open(f'{dir}/fitdata/fitresults_HC_{name}.pkl', 'rb') as f: 
-    #             HC_fitdata = pickle.load(f)
-
-    #     agent_fitdata = HC_fitdata | MUD_fitdata;  
-    #     agent_fitdata = datap.load_data(task_agent,agent_fitdata)
-    #     viz_params(task_agent,agent_fitdata)
-
-    # STEP 2: PARAM RECOVERY 
+    ##STEP 2: PARAMS COMPARITION
     for name in agent_name:
         task_agent = getattr(agent,name)
-        with open(f'{dir}/{name}_alldata.pkl', 'rb') as f: 
-            agent_rawdata = pickle.load(f)
-        with open(f'{dir}/fitdata/fitresults_sim_{name}.pkl', 'rb') as f: 
-            agent_fitdata = pickle.load(f)
-        viz_recov(task_agent,agent_fitdata,agent_rawdata)
+        with open(f'{dir}/fitdata/fitresults_{name}_MUD.pkl', 'rb') as f: 
+                MUD_fitdata = pickle.load(f)
+
+        with open(f'{dir}/fitdata/fitresults_{name}_HC.pkl', 'rb') as f: 
+                HC_fitdata = pickle.load(f)
+
+        agent_fitdata = HC_fitdata | MUD_fitdata;  
+        agent_fitdata = datap.load_data(task_agent,agent_fitdata)
+        viz_params(task_agent,agent_fitdata)
+
+    ## STEP 2: PARAM RECOVERY 
+    # for name in agent_name:
+    #     task_agent = getattr(agent,name)
+    #     with open(f'{dir}/behavdata_{name}_sim.pkl', 'rb') as f: 
+    #         agent_rawdata = pickle.load(f)
+    #     with open(f'{dir}/fitdata/fitresults_{name}_sim.pkl', 'rb') as f: 
+    #         agent_fitdata = pickle.load(f)
+    #     viz_recov(task_agent,agent_fitdata,agent_rawdata)

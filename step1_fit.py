@@ -28,8 +28,8 @@ if __name__ == '__main__':
     agent_name = ['MDT'] #'MB','MF',RA'
 
     group_files = {
-        "MUD": f"{dir}/MUD_alldata.pkl",
-        "HC": f"{dir}/HC_alldata.pkl"
+        "MUD": f"{dir}/behavdata_MUD_true.pkl",
+        "HC": f"{dir}/behavdata_HC_true.pkl"
     }
 
     ## STEP 2: SETTING 
@@ -45,7 +45,7 @@ if __name__ == '__main__':
             all_results = fit.fl(pool,task_agent,agent_data,task_env,n_fits)
 
 
-            output_path = f"{dir}/fitdata/fitresults_{group_name}_{name}.pkl"
+            output_path = f"{dir}/fitdata/fitresults_{name}_{group_name}.pkl"
             with open(output_path, 'xb') as f:
                 pickle.dump(all_results, f)
 
