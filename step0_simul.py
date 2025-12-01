@@ -64,8 +64,8 @@ if __name__ == '__main__':
                     simdata.to_excel(f'{dir}/simdata/MDT/MDT_{subj}_walkbyfit.xlsx',index=False)
                     agent_data[subj] = simdata
 
-            with open(f'{dir}/behavdata_MDT_{group}walk.pkl', 'xb') as f:    
-                    pickle.dump(agent_data, f)
+            # with open(f'{dir}/behavdata_MDT_{group}walk.pkl', 'xb') as f:    
+            #         pickle.dump(agent_data, f)
 
     print('Done')
 

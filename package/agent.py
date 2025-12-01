@@ -340,8 +340,8 @@ class MB():
     
 class MDT:
     name = 'MixedArb-Dynamic'
-    bnds = [(1e-3, 1), (0.1, 1), (1, 10), (1, 10), (0, 1), (0, 2)]
-    pbnds = [(0.3,0.7), (0.1,0.35), (0.2, 5), (0.02, 5), (0.05, 0.3), (0.1,0.5)]
+    bnds = [(1e-3, 1), (0.1, 1), (0.02, 10), (0.02, 10), (0, 1), (0, 2)]
+    pbnds = [(0.3,0.7), (0.1,0.35), (0.02, 5), (0.02, 5), (0.05, 0.3), (0.1,0.5)]
     p_name = ['w','eta','A_F2B','A_B2F','alpha','beta'] #参数名
     n_params = len(bnds) 
 
@@ -349,7 +349,7 @@ class MDT:
         
         lambda x: 1e-3 + (1 - 1e-3) * sigmoid(x),     # (1e-3, 1)
         lambda x: 0.1  + (1 - 0.1)  * sigmoid(x),     # (0.1, 1)
-        lambda x: 0.2  + (10 - 0.2) * sigmoid(x),     # (0.2, 10)
+        lambda x: 0.02  + (10 - 0.02) * sigmoid(x),     # (0.02, 10)
         lambda x: 0.02 + (10 - 0.02)* sigmoid(x),     # (0.02, 10)
         lambda x: 0.0  + (1 - 0.0)  * sigmoid(x),     # (0, 1)
         lambda x: 0.0  + (2 - 0.0)  * sigmoid(x),     # (0, 2)
@@ -358,7 +358,7 @@ class MDT:
     p_links = [
         lambda y: logit(np.clip((y - 1e-3) / (1 - 1e-3), eps_, 1 - eps_)),
         lambda y: logit(np.clip((y - 0.1 ) / (1 - 0.1 ), eps_, 1 - eps_)),
-        lambda y: logit(np.clip((y - 0.2 ) / (10 - 0.2), eps_, 1 - eps_)),
+        lambda y: logit(np.clip((y - 0.02 ) / (10 - 0.02), eps_, 1 - eps_)),
         lambda y: logit(np.clip((y - 0.02) / (10 - 0.02), eps_, 1 - eps_)),
         lambda y: logit(np.clip((y - 0.0 ) / (1 - 0.0 ), eps_, 1 - eps_)),
         lambda y: logit(np.clip((y - 0.0 ) / (2 - 0.0 ), eps_, 1 - eps_)),
@@ -397,7 +397,7 @@ class MDT:
 
         '''Beyesian Reliability estimation'''
         self.K=3; # trichonomy of PE
-        self.M=150; # memory size = 10
+        self.M=19; # memory size = 10
         self.M_half=6; # half-life
         self.M_current_MB=0; # MF accumulated events. cannot exceed T.
     
@@ -429,8 +429,8 @@ class MDT:
         self.ind_active_model = 1
         self.time_step = 1
 
-        self.B_B2F = .2e1
-        self.B_F2B  = 1.0e1
+        self.B_B2F = np.log(self.A_B2F / 0.01 - 1)  #.2e1
+        self.B_F2B = np.log(self.A_F2B / 0.01 - 1)  #1.0e1
 
         if self.ind_active_model == 1:
             self.MB_prob_prev=0.7   
@@ -481,7 +481,8 @@ class MDT:
         self.MB_thr_PE = self.w*np.array([-1, 1]) # length = self.K-1
 
         ''' MB model reliability estitation'''  
-        self.M_current_MB = np.min([self.M_current_MB+1, self.M]) # update # of accumulated events
+        self.M_current_MB = np.min([self.M_current_MB+1, self
+                                    .M]) # update # of accumulated events
         
         # (0) backup old values
         self.MB_mean_old = self.MB_mean
@@ -490,7 +491,7 @@ class MDT:
         
         # (1) find the corresponding row
         PE_level = np.where((self.MB_thr_PE-self.agent_MB.SPE)<0); # [!!] must be fwd because it looks into SPE.    
-        PE_theta = len(PE_level); # 0:neg, 1:zero, 2:posPE
+        PE_theta = len(PE_level[0]); # 0:neg, 1:zero, 2:posPE
         
         # (2) update the current column(=1) in PE_history
         self.MB_PE_history[:,1:] = self.MB_PE_history[:,0:-1] # shift 1 column (toward past)
