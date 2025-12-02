@@ -340,15 +340,15 @@ class MB():
     
 class MDT:
     name = 'MixedArb-Dynamic'
-    bnds = [(1e-3, 1), (0.1, 1), (0.02, 10), (0.02, 10), (0, 1), (0, 2)]
-    pbnds = [(0.3,0.7), (0.1,0.35), (0.02, 5), (0.02, 5), (0.05, 0.3), (0.1,0.5)]
+    bnds = [(1e-3, 1), (0, 1), (0.02, 10), (0.02, 10), (0, 1), (0, 2)]
+    pbnds = [(0.3, 0.7), (0.1, 0.35), (0.02, 5), (0.02, 5), (0.05, 0.3), (0.1,0.5)]
     p_name = ['w','eta','A_F2B','A_B2F','alpha','beta'] #参数名
     n_params = len(bnds) 
 
     p_trans = [
         
         lambda x: 1e-3 + (1 - 1e-3) * sigmoid(x),     # (1e-3, 1)
-        lambda x: 0.1  + (1 - 0.1)  * sigmoid(x),     # (0.1, 1)
+        lambda x: 0  + (1 - 0.0)  * sigmoid(x),     # (0.1, 1)
         lambda x: 0.02  + (10 - 0.02) * sigmoid(x),     # (0.02, 10)
         lambda x: 0.02 + (10 - 0.02)* sigmoid(x),     # (0.02, 10)
         lambda x: 0.0  + (1 - 0.0)  * sigmoid(x),     # (0, 1)
@@ -357,7 +357,7 @@ class MDT:
     
     p_links = [
         lambda y: logit(np.clip((y - 1e-3) / (1 - 1e-3), eps_, 1 - eps_)),
-        lambda y: logit(np.clip((y - 0.1 ) / (1 - 0.1 ), eps_, 1 - eps_)),
+        lambda y: logit(np.clip((y - 0.0 ) / (1 - 0.0 ), eps_, 1 - eps_)),
         lambda y: logit(np.clip((y - 0.02 ) / (10 - 0.02), eps_, 1 - eps_)),
         lambda y: logit(np.clip((y - 0.02) / (10 - 0.02), eps_, 1 - eps_)),
         lambda y: logit(np.clip((y - 0.0 ) / (1 - 0.0 ), eps_, 1 - eps_)),

@@ -156,7 +156,7 @@ def save(dir):
         data.to_excel(f'Pre-processed_{dataname}',index=False)
 
 ''' simulate data'''
-def datapush(subj,env,row,rng,flag,last_g):
+def datapush(subj, env, row, rng, flag, mode='init sim'):
     # ---------- Stage 1 ----------- #
     # see state 
     g = row['g']
@@ -176,11 +176,19 @@ def datapush(subj,env,row,rng,flag,last_g):
             
     # the next state, rew, and done 
     pi1  = subj.policy(s0)
-    a1  = rng.choice(env.nA, p=pi1)
+    if mode == 'init sim':
+        a1  = rng.choice(env.nA, p=pi1)
+    elif mode == 'fit sim':
+        a1 = np.argmax(pi1)
+
     s1,r1,done = env.step(s0,a1,g,p)
 
     pi2 = subj.policy(s1)
-    a2 = rng.choice(env.nA, p=pi2)
+    if mode == 'init sim':
+        a2  = rng.choice(env.nA, p=pi2)
+    elif mode == 'fit sim':
+        a2 = np.argmax(pi2)
+
     #save the info 
     subj.mem.push({
         'g': g, 
@@ -213,7 +221,8 @@ def datapush(subj,env,row,rng,flag,last_g):
     subj.learn()
     return a1, s1, pi1, a2, s2, pi2, r2
 
-def MDTwalk(subj,env,row,flag,last_g):
+
+def MDTwalk(subj,env,row,flag):
     s_termination = env.s_termination
     # ---------- Stage 1 ----------- #
     # see state 
@@ -279,7 +288,7 @@ def MDTwalk(subj,env,row,flag,last_g):
     Rel_MF = subj.MF_inv_Fano
     return a1, s1, pi1, a2, s2, pi2, r2, P_MB, Rel_MB, Rel_MF
 
-def block(agent,env,seed,init = None, truedata = None): 
+def block(agent, env, seed, init=None, truedata=None, mode = 'init sim'): 
     rng = np.random.RandomState(seed)
     if init is None:
         # random init from the possible bounds 
@@ -332,10 +341,10 @@ def block(agent,env,seed,init = None, truedata = None):
         
 
         if truedata is None or truedata.empty:
-            a1, s1, pi1, a2, s2, pi2, r2 = datapush(subj,env,row,rng,flag,last_g)
+            a1, s1, pi1, a2, s2, pi2, r2 = datapush(subj,env,row,rng,flag,mode)
         else:
             row = truedata.iloc[t] 
-            a1, s1, pi1, a2, s2, pi2, r2, P_MB, Rel_MB, Rel_MF = MDTwalk(subj,env,row,flag,last_g)
+            a1, s1, pi1, a2, s2, pi2, r2, P_MB, Rel_MB, Rel_MF = MDTwalk(subj,env,row,flag)
         
         # record the stimulated data 
         for c in col: 

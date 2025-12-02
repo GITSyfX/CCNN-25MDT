@@ -36,11 +36,11 @@ if __name__ == '__main__':
             for name in agent_name:
                 task_agent = getattr(agent,name)
                 agent_data = {}
-                with open(f'{dir}/fitdata/fitresults_{group}_{name}.pkl', 'rb') as f: 
+                with open(f'{dir}/fitdata/fitresults_{name}_{group}.pkl', 'rb') as f: 
                     group_fitdata = pickle.load(f)
                 for subj, fitdata in group_fitdata.items():
                     init_params = fitdata['param']
-                    params, simdata = datap.block(task_agent,task_env,seed,init_params) 
+                    params, simdata = datap.block(task_agent,task_env,seed,init_params,None,sim_mode) 
                     simdata.to_excel(f'{dir}/simdata/{name}/{name}_{subj}_simbyfit.xlsx',index=False)
                     agent_data[subj] = simdata
 
@@ -64,8 +64,8 @@ if __name__ == '__main__':
                     simdata.to_excel(f'{dir}/simdata/MDT/MDT_{subj}_walkbyfit.xlsx',index=False)
                     agent_data[subj] = simdata
 
-            # with open(f'{dir}/behavdata_MDT_{group}walk.pkl', 'xb') as f:    
-            #         pickle.dump(agent_data, f)
+            with open(f'{dir}/behavdata_MDT_{group}walk.pkl', 'xb') as f:    
+                    pickle.dump(agent_data, f)
 
     print('Done')
 
