@@ -156,7 +156,7 @@ def save(dir):
         data.to_excel(f'Pre-processed_{dataname}',index=False)
 
 ''' simulate data'''
-def datapush(subj, env, row, rng, flag, mode='init sim'):
+def datapush(subj, env, row, rng, flag):
     # ---------- Stage 1 ----------- #
     # see state 
     g = row['g']
@@ -167,27 +167,22 @@ def datapush(subj, env, row, rng, flag, mode='init sim'):
         subj.bw_update(g)
         if subj.name == 'MixedArb-Dynamic' and g == -1:
             subj.ind_active_model = 2 # switching the mode
-            subj.MB_prob_prev = 0.3 #changing the choice prob accordingly
+            subj.MB_prob_prev = 0.2 #changing the choice prob accordingly
             subj.MB_prob = subj.MB_prob_prev
         if subj.name == 'MixedArb-Dynamic' and g != -1:
             subj.ind_active_model = 1 
-            subj.MB_prob_prev = 0.7 
+            subj.MB_prob_prev = 0.8 
             subj.MB_prob = subj.MB_prob_prev
             
     # the next state, rew, and done 
     pi1  = subj.policy(s0)
-    if mode == 'init sim':
-        a1  = rng.choice(env.nA, p=pi1)
-    elif mode == 'fit sim':
-        a1 = np.argmax(pi1)
+    a1  = rng.choice(env.nA, p=pi1)
 
     s1,r1,done = env.step(s0,a1,g,p)
 
     pi2 = subj.policy(s1)
-    if mode == 'init sim':
-        a2  = rng.choice(env.nA, p=pi2)
-    elif mode == 'fit sim':
-        a2 = np.argmax(pi2)
+    a2  = rng.choice(env.nA, p=pi2)
+
 
     #save the info 
     subj.mem.push({
@@ -234,11 +229,11 @@ def MDTwalk(subj,env,row,flag):
         subj.bw_update(g)
         if subj.name == 'MixedArb-Dynamic' and g == -1:
             subj.ind_active_model = 2 # switching the mode
-            subj.MB_prob_prev = 0.3 #changing the choice prob accordingly
+            subj.MB_prob_prev = 0.2 #changing the choice prob accordingly
             subj.MB_prob = subj.MB_prob_prev
         if subj.name == 'MixedArb-Dynamic' and g != -1:
             subj.ind_active_model = 1 
-            subj.MB_prob_prev = 0.7 
+            subj.MB_prob_prev = 0.8 
             subj.MB_prob = subj.MB_prob_prev
     
     # the next state, rew, and done 
@@ -330,6 +325,7 @@ def block(agent, env, seed, init=None, truedata=None, mode = 'init sim'):
     pred_data = pd.DataFrame(init_mat, columns=col)
 
     ## loop to simulate the responses in the block
+    subj.bw_update(6)
     last_g = 6     
     for t, row in block_data.iterrows():
         if row['g'] != last_g:
@@ -341,7 +337,7 @@ def block(agent, env, seed, init=None, truedata=None, mode = 'init sim'):
         
 
         if truedata is None or truedata.empty:
-            a1, s1, pi1, a2, s2, pi2, r2 = datapush(subj,env,row,rng,flag,mode)
+            a1, s1, pi1, a2, s2, pi2, r2 = datapush(subj,env,row,rng,flag)
         else:
             row = truedata.iloc[t] 
             a1, s1, pi1, a2, s2, pi2, r2, P_MB, Rel_MB, Rel_MF = MDTwalk(subj,env,row,flag)

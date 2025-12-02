@@ -129,13 +129,13 @@ def nll(params, agent, env, data):
             if g != last_g:
                 subj.bw_update(g)
                 last_g = g
-                if subj.name == 'MixedArb-Dynamic' and g == -1:
-                    subj.ind_active_model = 2 # switching the mode
-                    subj.MB_prob_prev = 0.3 #changing the choice prob accordingly
-                    subj.MB_prob = subj.MB_prob_prev
+                # if subj.name == 'MixedArb-Dynamic' and g == -1:
+                #     subj.ind_active_model = 2 # switching the mode
+                #     subj.MB_prob_prev = 0.2 #changing the choice prob accordingly
+                #     subj.MB_prob = subj.MB_prob_prev
                 if subj.name == 'MixedArb-Dynamic' and g != -1:
                     subj.ind_active_model = 1 
-                    subj.MB_prob_prev = 0.7 
+                    subj.MB_prob_prev = 0.8 
                     subj.MB_prob = subj.MB_prob_prev 
             
             # the next state, rew, and done 
@@ -156,7 +156,6 @@ def nll(params, agent, env, data):
                 'r': r1,
                 'done': done
             })
-
             po1 = subj.eval_act(0, a1)+1e-16
             subj.learn()
             
@@ -179,8 +178,8 @@ def nll(params, agent, env, data):
                 'r': r2,
                 'done': done
             })
-            subj.learn()
             po2 = subj.eval_act(s1, a2)+1e-16
+            subj.learn()
             nLL -= (np.log(po1) + np.log(po2))
         return nLL 
 

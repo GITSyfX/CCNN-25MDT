@@ -40,7 +40,7 @@ if __name__ == '__main__':
                     group_fitdata = pickle.load(f)
                 for subj, fitdata in group_fitdata.items():
                     init_params = fitdata['param']
-                    params, simdata = datap.block(task_agent,task_env,seed,init_params,None,sim_mode) 
+                    params, simdata = datap.block(task_agent,task_env,seed,init_params,None) 
                     simdata.to_excel(f'{dir}/simdata/{name}/{name}_{subj}_simbyfit.xlsx',index=False)
                     agent_data[subj] = simdata
 

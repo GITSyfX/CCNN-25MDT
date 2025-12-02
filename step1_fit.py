@@ -16,8 +16,8 @@ def get_pool(n_fit,n_cores):
 
 if __name__ == '__main__':
     ## STEP 0: GET PARALLEL POOL
-    n_fits = 80
-    n_cores = 40
+    n_fits = 8
+    n_cores = 4
     mp.freeze_support()
     pool = get_pool(n_fits,n_cores)
 

@@ -134,6 +134,7 @@ class MF():
     
     def bw_update(self,g):
         self.Q = self.Q
+        return self.Q
 
 class MB_raw():
     name = 'Model Based raw'
@@ -556,9 +557,9 @@ class MDT:
         self.beyesion_relest()
         self.Dynamic_Arbit()
 
-        self.Q = ((self.MB_prob*self.agent_MB.Q)**self.p + (self.MF_prob*self.agent_MF.Q)**self.p)**(1/self.p)
+        self.Q = ((self.MB_prob*self.Q_MB)**self.p + (self.MF_prob*self.Q_MF)**self.p)**(1/self.p)
     
     def bw_update(self,g): 
-        self.agent_MF.bw_update(g)
-        self.agent_MB.bw_update(g)
-
+        self.Q_MB = self.agent_MB.bw_update(g)
+        self.Q_MF = self.Q_MB
+        self.Q = self.Q_MB
