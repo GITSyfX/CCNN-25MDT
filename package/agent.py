@@ -133,7 +133,6 @@ class MF():
         return self.RPE,self.Q_old,self.Q
     
     def bw_update(self,g):
-        self.Q = self.Q
         return self.Q
 
 class MB_raw():
@@ -341,19 +340,19 @@ class MB():
     
 class MDT:
     name = 'MixedArb-Dynamic'
-    bnds = [(1e-3, 1), (0, 1), (0.02, 10), (0.02, 10), (0, 1), (0, 2)]
-    pbnds = [(0.3, 0.7), (0.1, 0.35), (0.02, 5), (0.02, 5), (0.05, 0.3), (0.1,0.5)]
+    bnds = [(1e-3, 1), (0, 1), (0.02, 10), (0.02, 10), (0, 1), (0, 5)]
+    pbnds = [(0.3, 0.7), (0.1, 0.35), (0.02, 5), (0.02, 5), (0.1, 0.5), (0.1, 2)]
     p_name = ['w','eta','A_F2B','A_B2F','alpha','beta'] #参数名
     n_params = len(bnds) 
 
     p_trans = [
         
         lambda x: 1e-3 + (1 - 1e-3) * sigmoid(x),     # (1e-3, 1)
-        lambda x: 0  + (1 - 0.0)  * sigmoid(x),     # (0.1, 1)
+        lambda x: 0  + (1 - 0.0)  * sigmoid(x),     # (0, 1)
         lambda x: 0.02  + (10 - 0.02) * sigmoid(x),     # (0.02, 10)
         lambda x: 0.02 + (10 - 0.02)* sigmoid(x),     # (0.02, 10)
         lambda x: 0.0  + (1 - 0.0)  * sigmoid(x),     # (0, 1)
-        lambda x: 0.0  + (2 - 0.0)  * sigmoid(x),     # (0, 2)
+        lambda x: 0.0  + (5 - 0.0)  * sigmoid(x),     # (0, 5)
     ]
     
     p_links = [
@@ -362,7 +361,7 @@ class MDT:
         lambda y: logit(np.clip((y - 0.02 ) / (10 - 0.02), eps_, 1 - eps_)),
         lambda y: logit(np.clip((y - 0.02) / (10 - 0.02), eps_, 1 - eps_)),
         lambda y: logit(np.clip((y - 0.0 ) / (1 - 0.0 ), eps_, 1 - eps_)),
-        lambda y: logit(np.clip((y - 0.0 ) / (2 - 0.0 ), eps_, 1 - eps_)),
+        lambda y: logit(np.clip((y - 0.0 ) / (5 - 0.0 ), eps_, 1 - eps_)),
     ]
     
     def __init__(self, env,params):
@@ -430,8 +429,8 @@ class MDT:
         self.ind_active_model = 1
         self.time_step = 1
 
-        self.B_B2F = np.log(self.A_B2F / 0.01 - 1)  #.2e1
-        self.B_F2B = np.log(self.A_F2B / 0.01 - 1)  #1.0e1
+        self.B_B2F = np.log(np.maximum(self.A_B2F / 0.01 - 1, 1e-10))
+        self.B_F2B = np.log(np.maximum(self.A_F2B / 0.01 - 1, 1e-10))
 
         if self.ind_active_model == 1:
             self.MB_prob_prev=0.7   
@@ -556,10 +555,77 @@ class MDT:
         _,_,self.Q_MB = self.agent_MB.learn() 
         self.beyesion_relest()
         self.Dynamic_Arbit()
-
         self.Q = ((self.MB_prob*self.Q_MB)**self.p + (self.MF_prob*self.Q_MF)**self.p)**(1/self.p)
     
     def bw_update(self,g): 
         self.Q_MB = self.agent_MB.bw_update(g)
-        self.Q_MF = self.Q_MB
-        self.Q = self.Q_MB
+        self.Q_MF = self.agent_MF.bw_update(g)
+        self.Q = ((0.9*self.Q_MB)**self.p + (0.1*self.Q_MF)**self.p)**(1/self.p)
+
+
+class Hybrid():
+    name = 'Hybrid MF-MB'
+    bnds = [(0,1),(0,5),(0,1)] # 边界
+    pbnds = [(.1,.5),(.1,2),(.1,.9)] # 采样边界
+    p_name   = ['alpha', 'beta', 'omega']  # 参数名
+    n_params = len(p_name) 
+
+    p_trans = [lambda x: 0.0 + (1 - 0.0) * sigmoid(x),   # alpha
+               lambda x: 0.0 + (5 - 0.0) * sigmoid(x),   # beta
+               lambda x: 0.0 + (1 - 0.0) * sigmoid(x)]   # omega (MF-MB weight)
+    
+    p_links = [lambda y: logit(np.clip((y - 0.0) / (1 - 0.0), eps_, 1 - eps_)),  
+               lambda y: logit(np.clip((y - 0.0) / (5 - 0.0), eps_, 1 - eps_)),
+               lambda y: logit(np.clip((y - 0.0) / (1 - 0.0), eps_, 1 - eps_))] 
+
+    gamma = 1 
+    
+    def __init__(self, env, params):
+        self.env = env 
+        self.gamma = Hybrid.gamma
+        self._init_mem()
+        self._init_critic()
+        self._load_params(params)
+        self._load_agents()
+
+    def _init_mem(self):
+        self.mem = simpleBuffer()
+
+    def _load_params(self, params):
+        params = [fn(p) for p, fn in zip(params, self.p_trans)]
+        self.alpha = params[0]  # shared learning rate for both MF and MB
+        self.beta  = params[1]  # inverse temperature 
+        self.omega = 1 #params[2]  # weight between MF and MB (0=pure MF, 1=pure MB)
+
+    def _load_agents(self):
+        self.agent_MF = MF(self.env,params=[self.alpha,self.beta])
+        self.agent_MB = MB(self.env,params=[self.alpha,self.beta])
+
+    def _init_critic(self):
+        self.Q = np.zeros([self.env.nS, self.env.nA])
+
+    # ----------- decision ----------- #
+    def policy(self, s):
+        logit = self.Q[s, :]
+        return softmax(self.beta*logit)
+
+    def eval_act(self, s, a):
+        '''Evaluate the probability of given state and action'''
+        logit = self.Q[s, :] 
+        prob  = softmax(self.beta*logit)
+        return prob[int(a)]
+    
+    # ----------- learning ----------- #
+    
+    def learn(self):
+        self.agent_MF.mem = self.mem
+        self.agent_MB.mem = self.mem
+        _,_,self.Q_MF = self.agent_MF.learn() 
+        _,_,self.Q_MB = self.agent_MB.learn() 
+        self.Q = self.omega*self.Q_MB + (1 - self.omega)*self.Q_MF
+
+    def bw_update(self, g):
+        self.Q_MB = self.agent_MB.bw_update(g)
+        self.Q_MF = self.agent_MF.bw_update(g)
+        self.Q = 1*self.Q_MB + 0*self.Q_MF
+        return self.Q

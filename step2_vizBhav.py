@@ -154,7 +154,7 @@ if __name__ == '__main__':
     dir = cfg["data_dir"]
     sim_mode = cfg["sim_mode"]
 
-    data_name = ['MDT_sim','MB_sim','MF_sim','RA_sim','MUD_true','HC_true'] #'MDT_sim','RA_sim'
+    data_name = ['Hybrid_sim','MB_sim','MF_sim','RA_sim','MUD_true','HC_true'] #'MDT_sim','RA_sim'
     data_dict = {}
 
     for name in data_name:

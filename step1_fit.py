@@ -16,8 +16,8 @@ def get_pool(n_fit,n_cores):
 
 if __name__ == '__main__':
     ## STEP 0: GET PARALLEL POOL
-    n_fits = 8
-    n_cores = 4
+    n_fits = 80
+    n_cores = 40
     mp.freeze_support()
     pool = get_pool(n_fits,n_cores)
 
@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     cfg = datap.load_config()
     dir = cfg["data_dir"]
-    agent_name = ['MDT'] #'MB','MF',RA'
+    agent_name = ['MDT','Hybrid','MB','MF']
 
     group_files = {
         "MUD": f"{dir}/behavdata_MUD_true.pkl",

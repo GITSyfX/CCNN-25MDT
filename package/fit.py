@@ -119,6 +119,7 @@ def nll(params, agent, env, data):
         nLL = 0
         ## loop to simulate the responses in the block 
         last_g = 6 
+        subj.bw_update(last_g)
         for _, row in data.iterrows():
             # ---------- Stage 1 ----------- #
             # see state 
@@ -127,16 +128,16 @@ def nll(params, agent, env, data):
             s0  = row['s0'] #s0 = env.reset()
 
             if g != last_g:
-                subj.bw_update(g)
-                last_g = g
-                # if subj.name == 'MixedArb-Dynamic' and g == -1:
-                #     subj.ind_active_model = 2 # switching the mode
-                #     subj.MB_prob_prev = 0.2 #changing the choice prob accordingly
-                #     subj.MB_prob = subj.MB_prob_prev
+                #if subj.name == 'MixedArb-Dynamic' and g == -1:
+                    #subj.ind_active_model = 2 # switching the mode
+                    #subj.MB_prob_prev = 0.1 #changing the choice prob accordingly
+                    #subj.MB_prob = subj.MB_prob_prev
                 if subj.name == 'MixedArb-Dynamic' and g != -1:
                     subj.ind_active_model = 1 
-                    subj.MB_prob_prev = 0.8 
+                    subj.MB_prob_prev = 0.9 
                     subj.MB_prob = subj.MB_prob_prev 
+                subj.bw_update(g)
+                last_g = g
             
             # the next state, rew, and done 
             a1 = row['a1']

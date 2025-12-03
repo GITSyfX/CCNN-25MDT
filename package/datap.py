@@ -164,15 +164,16 @@ def datapush(subj, env, row, rng, flag):
     s0  = row['s0'] #s0 = env.reset()
     
     if flag == 1:
-        subj.bw_update(g)
-        if subj.name == 'MixedArb-Dynamic' and g == -1:
-            subj.ind_active_model = 2 # switching the mode
-            subj.MB_prob_prev = 0.2 #changing the choice prob accordingly
-            subj.MB_prob = subj.MB_prob_prev
+        #if subj.name == 'MixedArb-Dynamic' and g == -1:
+            #subj.ind_active_model = 2 # switching the mode
+            #subj.MB_prob_prev = 0.1 #changing the choice prob accordingly
+            #subj.MB_prob = subj.MB_prob_prev
         if subj.name == 'MixedArb-Dynamic' and g != -1:
             subj.ind_active_model = 1 
-            subj.MB_prob_prev = 0.8 
+            subj.MB_prob_prev = 0.9 
             subj.MB_prob = subj.MB_prob_prev
+        subj.bw_update(g)
+        last_g = g
             
     # the next state, rew, and done 
     pi1  = subj.policy(s0)
@@ -226,16 +227,17 @@ def MDTwalk(subj,env,row,flag):
     s0  = row['s0'] #s0 = env.reset()
 
     if flag == 1:
-        subj.bw_update(g)
-        if subj.name == 'MixedArb-Dynamic' and g == -1:
-            subj.ind_active_model = 2 # switching the mode
-            subj.MB_prob_prev = 0.2 #changing the choice prob accordingly
-            subj.MB_prob = subj.MB_prob_prev
+        #if subj.name == 'MixedArb-Dynamic' and g == -1:
+            #subj.ind_active_model = 2 # switching the mode
+            #subj.MB_prob_prev = 0.3 #changing the choice prob accordingly
+            #subj.MB_prob = subj.MB_prob_prev
         if subj.name == 'MixedArb-Dynamic' and g != -1:
             subj.ind_active_model = 1 
-            subj.MB_prob_prev = 0.8 
+            subj.MB_prob_prev = 0.9 
             subj.MB_prob = subj.MB_prob_prev
-    
+        subj.bw_update(g)
+        last_g = g
+
     # the next state, rew, and done 
     pi1  = subj.policy(s0)
     a1 = row['a1']
@@ -325,8 +327,9 @@ def block(agent, env, seed, init=None, truedata=None, mode = 'init sim'):
     pred_data = pd.DataFrame(init_mat, columns=col)
 
     ## loop to simulate the responses in the block
-    subj.bw_update(6)
-    last_g = 6     
+
+    last_g = 6  
+    subj.bw_update(last_g)   
     for t, row in block_data.iterrows():
         if row['g'] != last_g:
             flag = 1

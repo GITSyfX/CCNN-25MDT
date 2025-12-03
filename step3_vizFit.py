@@ -166,7 +166,7 @@ if __name__ == '__main__':
     ## STEP 1: LOAD DATA 
     cfg = datap.load_config()
     dir = cfg["data_dir"]
-    agent_name = ['MDT','MB','MF'] #'MB'
+    agent_name = ['Hybrid','MB','MF'] #'MB'
     agent_dict = {}
 
     ##STEP 2: PARAMS COMPARITION

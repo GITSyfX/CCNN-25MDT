@@ -23,7 +23,7 @@ if __name__ == '__main__':
     ## STEP 1: LOAD 
     cfg = datap.load_config()
     dir = cfg["data_dir"]
-    agent_name = ['MDT'] #'MB','MF','RA'
+    agent_name = ['MDT','Hybrid','MB','MF']
 
     ## STEP 2: SETTING 
     seed = 2025
