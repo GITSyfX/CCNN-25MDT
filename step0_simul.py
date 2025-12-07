@@ -6,13 +6,13 @@ from package import agent,datap,env
 
 if __name__ == '__main__':
     #设置参数，生成数据
-    seed = 4050
+    seed = 9809
     cfg = datap.load_config()
     dir = cfg["data_dir"]
     sim_mode = cfg["sim_mode"]
 
     task_env = env.two_stage() 
-    agent_name = ['Hybrid','MDT','MB'] #'MDT','MB','MF','RA'
+    agent_name = ['Hybrid','MDT','MB','MF'] #'MDT','MB','MF','RA'
 
     turns = 200
 

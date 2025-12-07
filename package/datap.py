@@ -168,12 +168,11 @@ def datapush(subj, env, row, rng, flag):
             #subj.ind_active_model = 2 # switching the mode
             #subj.MB_prob_prev = 0.1 #changing the choice prob accordingly
             #subj.MB_prob = subj.MB_prob_prev
-        if subj.name == 'MixedArb-Dynamic' and g != -1:
+        if subj.name == 'MixedArb-Dynamic':
             subj.ind_active_model = 1 
             subj.MB_prob_prev = 0.9 
             subj.MB_prob = subj.MB_prob_prev
         subj.bw_update(g)
-        last_g = g
             
     # the next state, rew, and done 
     pi1  = subj.policy(s0)
@@ -231,12 +230,11 @@ def MDTwalk(subj,env,row,flag):
             #subj.ind_active_model = 2 # switching the mode
             #subj.MB_prob_prev = 0.3 #changing the choice prob accordingly
             #subj.MB_prob = subj.MB_prob_prev
-        if subj.name == 'MixedArb-Dynamic' and g != -1:
+        if subj.name == 'MixedArb-Dynamic':
             subj.ind_active_model = 1 
             subj.MB_prob_prev = 0.9 
             subj.MB_prob = subj.MB_prob_prev
         subj.bw_update(g)
-        last_g = g
 
     # the next state, rew, and done 
     pi1  = subj.policy(s0)
@@ -285,7 +283,7 @@ def MDTwalk(subj,env,row,flag):
     Rel_MF = subj.MF_inv_Fano
     return a1, s1, pi1, a2, s2, pi2, r2, P_MB, Rel_MB, Rel_MF
 
-def block(agent, env, seed, init=None, truedata=None, mode = 'init sim'): 
+def block(agent, env, seed, init=None, truedata=None): 
     rng = np.random.RandomState(seed)
     if init is None:
         # random init from the possible bounds 

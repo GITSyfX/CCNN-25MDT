@@ -154,8 +154,8 @@ if __name__ == '__main__':
     # STEP 1: LOAD DATA 
     cfg = datap.load_config()
     dir = cfg["data_dir"]
-    agent_name = ['MB','MF','Hybrid'] #'MB'
-    agent_markers = ['o','^','v']
+    agent_name = ['Hybrid','MDT','MB','MF'] #'MB'
+    agent_markers = ['s','o','^','v']
     
     Groups_all_fitdata = {}
     MUD_all_fitdata = {}

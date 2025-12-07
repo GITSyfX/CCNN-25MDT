@@ -10,7 +10,7 @@ max_ = 1e+13
 
 "fitdata"
 def fd(agent, data, env, method='mle',
-    alg='Nelder-Mead', init=False, seed=2023, 
+    alg='Nelder-Mead', init=False, seed=2025, 
     verbose=False):
     # get some value
     p_name = agent.p_name
@@ -132,7 +132,7 @@ def nll(params, agent, env, data):
                     #subj.ind_active_model = 2 # switching the mode
                     #subj.MB_prob_prev = 0.1 #changing the choice prob accordingly
                     #subj.MB_prob = subj.MB_prob_prev
-                if subj.name == 'MixedArb-Dynamic' and g != -1:
+                if subj.name == 'MixedArb-Dynamic':
                     subj.ind_active_model = 1 
                     subj.MB_prob_prev = 0.9 
                     subj.MB_prob = subj.MB_prob_prev 

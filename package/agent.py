@@ -595,7 +595,7 @@ class Hybrid():
         params = [fn(p) for p, fn in zip(params, self.p_trans)]
         self.alpha = params[0]  # shared learning rate for both MF and MB
         self.beta  = params[1]  # inverse temperature 
-        self.omega = 1 #params[2]  # weight between MF and MB (0=pure MF, 1=pure MB)
+        self.omega = params[2]  # weight between MF and MB (0=pure MF, 1=pure MB)
 
     def _load_agents(self):
         self.agent_MF = MF(self.env,params=[self.alpha,self.beta])
@@ -627,5 +627,5 @@ class Hybrid():
     def bw_update(self, g):
         self.Q_MB = self.agent_MB.bw_update(g)
         self.Q_MF = self.agent_MF.bw_update(g)
-        self.Q = 1*self.Q_MB + 0*self.Q_MF
+        self.Q = 0.9*self.Q_MB + 0.1*self.Q_MF
         return self.Q

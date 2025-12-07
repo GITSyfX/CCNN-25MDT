@@ -166,7 +166,7 @@ if __name__ == '__main__':
     ## STEP 1: LOAD DATA 
     cfg = datap.load_config()
     dir = cfg["data_dir"]
-    agent_name = ['Hybrid','MB','MF'] #'MB'
+    agent_name = ['Hybrid','MDT','MB','MF'] #'MB'
     agent_dict = {}
 
     ##STEP 2: PARAMS COMPARITION
@@ -181,7 +181,7 @@ if __name__ == '__main__':
         agent_fitdata = HC_fitdata | MUD_fitdata;  
         agent_fitdata = datap.load_data(task_agent,agent_fitdata)
         viz_params(task_agent,agent_fitdata)
-
+        print(len(MUD_fitdata))
     ## STEP 2: PARAM RECOVERY 
     # for name in agent_name:
     #     task_agent = getattr(agent,name)

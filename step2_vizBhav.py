@@ -109,7 +109,7 @@ def viz_bar(data_dict,data_name,indic,indicname,y_lim = [0,1],y_ticks = [0,0.5,1
     print(f'Proccessing data of {indicname}')
     fig, ax = plt.subplots(1, len(data_dict), figsize=(18, 4))
     fig.text(0.5, 0.1, 'Goal condition', ha='center', va='center')
-
+    
     for i,data_allsubj in enumerate(data_dict.keys()):
         L_uncer_means,L_uncer_std,H_uncer_means,H_uncer_std,L_uncer_raw,H_uncer_raw = get_bardata(data_dict[data_allsubj],indic)
         x = np.arange(len(L_uncer_means)) 
@@ -142,7 +142,8 @@ def viz_bar(data_dict,data_name,indic,indicname,y_lim = [0,1],y_ticks = [0,0.5,1
 
 if __name__ == '__main__':
     ## STEP 0: COLOR SETTING  
-    agent_color = [[126/255,153/255,244/255],
+    agent_color = [[150/255,153/255,244/255],
+                [126/255,153/255,244/255],
                 [122/255,65/255,113/255],
                 [204/255,126/255,177/255],
                 [163/255,163/255,162/255],
@@ -154,7 +155,7 @@ if __name__ == '__main__':
     dir = cfg["data_dir"]
     sim_mode = cfg["sim_mode"]
 
-    data_name = ['Hybrid_sim','MB_sim','MF_sim','RA_sim','MUD_true','HC_true'] #'MDT_sim','RA_sim'
+    data_name = ['Hybrid_MUDfit','MDT_MUDfit','MB_MUDfit','MF_MUDfit','MB_sim','MUD_true','HC_true'] #'MDT_sim','RA_sim'
     data_dict = {}
 
     for name in data_name:

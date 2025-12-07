@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     cfg = datap.load_config()
     dir = cfg["data_dir"]
-    agent_name = ['MDT','Hybrid','MB','MF']
+    agent_name = ['Hybrid']
 
     group_files = {
         "MUD": f"{dir}/behavdata_MUD_true.pkl",
