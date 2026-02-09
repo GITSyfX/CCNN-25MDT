@@ -174,9 +174,9 @@ if __name__ == '__main__':
         MUD_all_fitdata[name] = MUD_fitdata
         HC_all_fitdata[name] = HC_fitdata
 
-    #viz_sortviolin(agent_name,Groups_all_fitdata)
-    #viz_sortviolin(agent_name,MUD_all_fitdata)
-    #viz_sortviolin(agent_name,HC_all_fitdata)
+    viz_sortviolin(agent_name,Groups_all_fitdata)
+    viz_sortviolin(agent_name,MUD_all_fitdata)
+    viz_sortviolin(agent_name,HC_all_fitdata)
     viz_sortcurve(agent_name, Groups_all_fitdata, agent_markers, crs='BIC')
     viz_sortcurve(agent_name, MUD_all_fitdata, agent_markers, crs='BIC')
     viz_sortcurve(agent_name, HC_all_fitdata, agent_markers, crs='BIC')
